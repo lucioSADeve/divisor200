@@ -10,46 +10,120 @@
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #f0f0f0;
         }
         .upload-area {
             border: 2px dashed #ccc;
             padding: 20px;
             text-align: center;
             margin: 20px 0;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #0066cc;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         .results {
             margin-top: 20px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .download-link {
             display: block;
-            margin: 5px 0;
-            color: blue;
-            text-decoration: underline;
-            cursor: pointer;
+            margin: 10px 0;
+            color: #0066cc;
+            text-decoration: none;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        .download-link:hover {
+            background-color: #e9ecef;
+            color: #004d99;
         }
         .loading {
             display: none;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h3 {
+            color: #444;
+        }
+        #fileInput {
+            display: none;
+        }
+        .upload-button {
+            background-color: #0066cc;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+        }
+        .upload-button:hover {
+            background-color: #004d99;
         }
     </style>
 </head>
 <body>
     <h1>Divisor de Arquivos Excel</h1>
-    <div class="upload-area">
+    <div class="upload-area" id="dropZone">
         <h3>Arraste seu arquivo Excel ou clique para selecionar</h3>
         <input type="file" id="fileInput" accept=".xlsx,.xls">
+        <button class="upload-button" onclick="document.getElementById('fileInput').click()">
+            Selecionar Arquivo
+        </button>
     </div>
     <div class="loading">Processando arquivo...</div>
     <div class="results"></div>
 
     <script>
         const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropZone');
         const loading = document.querySelector('.loading');
         const results = document.querySelector('.results');
 
-        fileInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+        // Adiciona eventos de drag and drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#0066cc';
+        });
 
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#ccc';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#ccc';
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        });
+
+        async function handleFile(file) {
             const formData = new FormData();
             formData.append('arquivo', file);
 
@@ -72,7 +146,9 @@
                     <h3>Arquivos gerados:</h3>
                     <div>
                         ${data.arquivos.map(arquivo => `
-                            <a class="download-link" href="/download/${arquivo.id}/${arquivo.nome}">${arquivo.nome}</a>
+                            <a class="download-link" href="/download/${arquivo.id}/${arquivo.nome}">
+                                ${arquivo.nome}
+                            </a>
                         `).join('')}
                     </div>
                 `;
@@ -81,7 +157,7 @@
             } finally {
                 loading.style.display = 'none';
             }
-        });
+        }
     </script>
 </body>
 </html>
