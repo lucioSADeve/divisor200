@@ -17,7 +17,7 @@ const upload = multer({
 });
 
 // Configurações
-const LINHAS_POR_ARQUIVO = 5000;
+const LINHAS_POR_ARQUIVO = 200;
 
 // Configurar pasta de arquivos estáticos
 app.use(express.static('public'));
