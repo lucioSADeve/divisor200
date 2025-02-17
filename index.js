@@ -44,16 +44,30 @@ app.post('/upload', upload.single('arquivo'), async (req, res) => {
         const planilha = workbook.Sheets[workbook.SheetNames[0]];
         const dados = XLSX.utils.sheet_to_json(planilha);
 
-        console.log('Total de linhas:', dados.length);
-        const totalArquivos = Math.ceil(dados.length / LINHAS_POR_ARQUIVO);
-        const arquivosGerados = [];
-        const sessionId = Date.now().toString(); // ID único para esta sessão
+        console.log('Total de linhas antes do filtro:', dados.length);
 
-        // Processa cada parte
+        // Filtra apenas domínios .com.br e .br (excluindo .org.br)
+        const dadosFiltrados = dados.filter(row => {
+            return Object.values(row).some(value => {
+                if (typeof value === 'string') {
+                    value = value.toLowerCase();
+                    // Exclui .org.br e inclui apenas .com.br ou .br direto
+                    return (value.endsWith('.com.br') || value.endsWith('.br')) && !value.endsWith('.org.br');
+                }
+                return false;
+            });
+        });
+
+        console.log('Total de linhas após filtro (.com.br e .br, exceto .org.br):', dadosFiltrados.length);
+        const totalArquivos = Math.ceil(dadosFiltrados.length / LINHAS_POR_ARQUIVO);
+        const arquivosGerados = [];
+        const sessionId = Date.now().toString();
+
+        // Processa cada parte com 200 linhas
         for (let i = 0; i < totalArquivos; i++) {
             const inicio = i * LINHAS_POR_ARQUIVO;
-            const fim = Math.min((i + 1) * LINHAS_POR_ARQUIVO, dados.length);
-            const dadosParte = dados.slice(inicio, fim);
+            const fim = Math.min((i + 1) * LINHAS_POR_ARQUIVO, dadosFiltrados.length);
+            const dadosParte = dadosFiltrados.slice(inicio, fim);
 
             const novoWorkbook = XLSX.utils.book_new();
             const novaPlanilha = XLSX.utils.json_to_sheet(dadosParte);
