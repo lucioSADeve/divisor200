@@ -46,19 +46,21 @@ app.post('/upload', upload.single('arquivo'), async (req, res) => {
 
         console.log('Total de linhas antes do filtro:', dados.length);
 
-        // Filtra apenas domínios .com.br e .br (excluindo .org.br)
+        // Filtra apenas domínios .com.br e .br (excluindo .org.br e .gov.br)
         const dadosFiltrados = dados.filter(row => {
             return Object.values(row).some(value => {
                 if (typeof value === 'string') {
                     value = value.toLowerCase();
-                    // Exclui .org.br e inclui apenas .com.br ou .br direto
-                    return (value.endsWith('.com.br') || value.endsWith('.br')) && !value.endsWith('.org.br');
+                    // Exclui .org.br e .gov.br, inclui apenas .com.br ou .br direto
+                    return (value.endsWith('.com.br') || value.endsWith('.br')) && 
+                           !value.endsWith('.org.br') && 
+                           !value.endsWith('.gov.br');
                 }
                 return false;
             });
         });
 
-        console.log('Total de linhas após filtro (.com.br e .br, exceto .org.br):', dadosFiltrados.length);
+        console.log('Total de linhas após filtro (.com.br e .br, exceto .org.br e .gov.br):', dadosFiltrados.length);
         const totalArquivos = Math.ceil(dadosFiltrados.length / LINHAS_POR_ARQUIVO);
         const arquivosGerados = [];
         const sessionId = Date.now().toString();
